@@ -104,8 +104,12 @@ header{position:sticky;top:0;z-index:20;background:rgba(9,10,13,.94);backdrop-fi
 const DIVS=["플라이급","밴텀급","페더급","라이트급","웰터급","미들급","라이트헤비급","헤비급","여성 스트로급","여성 플라이급","여성 밴텀급","여성 페더급"];
 let settings=JSON.parse(UFCStorage.get("ufcPresidentSettings")||'null')||{league:"UFC PRESIDENT",rankMode:"balanced"};
 let db=JSON.parse(UFCStorage.get("ufcPresidentV2")||"null")||{fighters:[],events:[],news:[],seq:1};
-db.fighters.forEach(f=>{f.history=f.history||[];f.w=f.w||0;f.l=f.l||0;f.d=f.d||0;f.streak=f.streak||0;f.titleWins=f.titleWins||0;f.def=f.def||0;f.interim=!!f.interim;f.activity=f.activity||0;});
-db.events.forEach(e=>e.bouts.forEach(b=>{if(b.result===undefined)b.result=null;b.interim=!!b.interim;b.title=!!b.title;}));
+db.fighters=Array.isArray(db.fighters)?db.fighters:[];
+db.events=Array.isArray(db.events)?db.events:[];
+db.news=Array.isArray(db.news)?db.news:[];
+db.seq=Number.isFinite(+db.seq)&&+db.seq>0?+db.seq:1;
+db.fighters.forEach(f=>{f.history=Array.isArray(f.history)?f.history:[];f.w=Number(f.w)||0;f.l=Number(f.l)||0;f.d=Number(f.d)||0;f.streak=Number(f.streak)||0;f.titleWins=Number(f.titleWins)||0;f.def=Number(f.def)||0;f.interim=!!f.interim;f.activity=Number(f.activity)||0;});
+db.events.forEach(e=>{e.bouts=Array.isArray(e.bouts)?e.bouts:[];e.bouts.forEach(b=>{if(b.result===undefined)b.result=null;b.interim=!!b.interim;b.title=!!b.title;});});
 function save(){UFCStorage.set("ufcPresidentV2",JSON.stringify(db));UFCStorage.set("ufcPresidentSettings",JSON.stringify(settings));try{renderAll()}catch(err){console.error("UFC PRESIDENT render error:",err)}}
 function id(){return "id"+db.seq++}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
@@ -132,11 +136,27 @@ function openFighter(fid){
  <div class="row"><button onclick="openFighterForm('${fid}')">편집</button><button class="danger" onclick="deleteFighter('${fid}')">삭제</button></div>`);
 }
 function openEventForm(){
- openModal(`<div class="row between"><h2>이벤트 생성</h2><button class="secondary" onclick="closeModal()">닫기</button></div>
- <div class="formgrid"><div class="field"><label>이벤트명</label><input id="eName" value="UFC ${String(db.events.length+1).padStart(3,"0")}"></div><div class="field"><label>날짜</label><input id="eDate" type="date"></div></div>
- <div class="field"><label>장소</label><input id="ePlace" placeholder="예: Las Vegas"></div><button onclick="createEvent()">생성</button>`);
+ const nextNo=String((Array.isArray(db.events)?db.events.length:0)+1).padStart(3,"0");
+ openModal(`<form id="eventForm" onsubmit="createEvent(event)"><div class="row between"><h2>이벤트 생성</h2><button type="button" class="secondary" onclick="closeModal()">닫기</button></div>
+ <div class="formgrid"><div class="field"><label>이벤트명</label><input id="eName" value="UFC ${nextNo}" required></div><div class="field"><label>날짜</label><input id="eDate" type="date"></div></div>
+ <div class="field"><label>장소</label><input id="ePlace" placeholder="예: Las Vegas"></div><button type="submit">생성</button></form>`);
 }
-function createEvent(){let n=document.getElementById("eName").value.trim();if(!n)return alert("이벤트명을 입력하세요.");let e={id:id(),name:n,date:document.getElementById("eDate").value,place:document.getElementById("ePlace").value.trim(),bouts:[],done:false};db.events.unshift(e);save();closeModal();openEvent(e.id)}
+function createEvent(ev){
+ if(ev) ev.preventDefault();
+ try{
+  const nameEl=document.getElementById("eName"),dateEl=document.getElementById("eDate"),placeEl=document.getElementById("ePlace");
+  if(!nameEl){alert("이벤트 창을 다시 열어주세요.");return;}
+  const n=nameEl.value.trim();
+  if(!n){alert("이벤트명을 입력하세요.");nameEl.focus();return;}
+  const e={id:id(),name:n,date:dateEl?dateEl.value:"",place:placeEl?placeEl.value.trim():"",bouts:[],done:false};
+  if(!Array.isArray(db.events)) db.events=[];
+  db.events.unshift(e);
+  UFCStorage.set("ufcPresidentV2",JSON.stringify(db));
+  closeModal();
+  renderAll();
+  openEvent(e.id);
+ }catch(err){console.error(err);alert("이벤트 생성 중 오류가 발생했습니다. Safari를 새로고침한 뒤 다시 시도해주세요.");}
+}
 function quickEvent(){openEventForm()}
 function addBout(eid){
  let opts=db.fighters.map(f=>`<option value="${f.id}">${esc(f.name)} · ${esc(f.div)} ${rankLabel(f)}</option>`).join("");
