@@ -8,7 +8,7 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="apple-mobile-web-app-title" content="UFC President">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>UFC PRESIDENT v3.1</title>
+<title>UFC PRESIDENT v3.2 Safari Fixed</title>
 <style>
 :root{--bg:#090a0d;--panel:#12151a;--panel2:#191d24;--line:#292e38;--text:#f7f7f8;--muted:#9ba3af;--red:#e51d35;--gold:#d8ad52;--green:#39c477;--blue:#4f9cff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding-bottom:82px}button,input,select,textarea{font:inherit}button{border:0;border-radius:10px;padding:10px 13px;background:var(--red);color:#fff;font-weight:750;cursor:pointer}.secondary{background:var(--panel2);border:1px solid var(--line)}.gold{background:var(--gold);color:#15120a}.danger{background:#52202a}
@@ -17,7 +17,7 @@ header{position:sticky;top:0;z-index:20;background:rgba(9,10,13,.94);backdrop-fi
 </style>
 </head>
 <body>
-<header><div class="headrow"><div><h1>🥊 UFC PRESIDENT <span class="pill">v3.1</span></h1><div class="sub">나만의 UFC 세계관 운영 시스템</div></div><button class="secondary" onclick="openSettings()">⚙️</button></div></header>
+<header><div class="headrow"><div><h1>🥊 UFC PRESIDENT <span class="pill">v3.2 FIXED</span></h1><div class="sub">나만의 UFC 세계관 운영 시스템</div></div><button class="secondary" onclick="openSettings()">⚙️</button></div></header>
 
 <main>
 <section id="home" class="tab active">
@@ -137,11 +137,11 @@ function openFighter(fid){
 }
 function openEventForm(){
  const nextNo=String((Array.isArray(db.events)?db.events.length:0)+1).padStart(3,"0");
- openModal(`<form id="eventForm" onsubmit="createEvent(event)"><div class="row between"><h2>이벤트 생성</h2><button type="button" class="secondary" onclick="closeModal()">닫기</button></div>
+ openModal(`<form id="eventForm" onsubmit="handleCreateEvent(event)"><div class="row between"><h2>이벤트 생성</h2><button type="button" class="secondary" onclick="closeModal()">닫기</button></div>
  <div class="formgrid"><div class="field"><label>이벤트명</label><input id="eName" value="UFC ${nextNo}" required></div><div class="field"><label>날짜</label><input id="eDate" type="date"></div></div>
  <div class="field"><label>장소</label><input id="ePlace" placeholder="예: Las Vegas"></div><button type="submit">생성</button></form>`);
 }
-function createEvent(ev){
+function handleCreateEvent(ev){
  if(ev) ev.preventDefault();
  try{
   const nameEl=document.getElementById("eName"),dateEl=document.getElementById("eDate"),placeEl=document.getElementById("ePlace");
